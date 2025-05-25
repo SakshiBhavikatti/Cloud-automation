@@ -21,7 +21,7 @@ pipeline {
         stage('Terraform Provisioning') {
             steps {
                 dir('terraform') {
-                    bat '''
+                    sh '''
                         terraform init
                         terraform apply -auto-approve
                     '''
@@ -31,15 +31,15 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t flask-app ./app'
-                bat 'docker tag flask-app ${IMAGE_NAME}'
+                sh 'docker build -t flask-app ./app'
+                sh 'docker tag flask-app ${IMAGE_NAME}'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DockerHub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    bat '''
+                    sh '''
                         echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
                         docker push ${IMAGE_NAME}
                     '''
@@ -50,7 +50,7 @@ pipeline {
         /*
         stage('Deploy to Kubernetes') {
             steps {
-                bat '''
+                sh '''
                     kubectl apply -f deployment/deployment.yaml
                     kubectl apply -f deployment/service.yaml
                 '''
@@ -62,7 +62,7 @@ pipeline {
     /*post {
         always {
             dir('terraform') {
-                bat '''
+                sh '''
                     echo "Waiting 500 minutes before destroying resources..."
                     sleep 30000
                     terraform destroy -auto-approve
