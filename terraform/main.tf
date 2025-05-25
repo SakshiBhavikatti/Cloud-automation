@@ -72,6 +72,13 @@ resource "aws_security_group" "flask_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+ingress {
+  from_port   = 8080
+  to_port     = 8080
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
   ingress {
     from_port   = 5000
     to_port     = 5000
@@ -100,7 +107,7 @@ resource "aws_key_pair" "deployer" {
 # EC2 instance
 resource "aws_instance" "flask_ec2" {
   ami                    = "ami-0e35ddab05955cf57"
-  instance_type          = "t2.micro"
+  instance_type          = "t3.medium"
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.flask_sg.id]
   subnet_id              = aws_subnet.main_subnet.id

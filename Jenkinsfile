@@ -1,30 +1,72 @@
 pipeline {
     agent any
+
+    environment {
+        GIT_REPO = 'https://github.com/SakshiBhavikatti/Cloud-automation.git'
+        IMAGE_NAME = 'sakshi00/flask-app'
+        AWS_REGION = 'ap-south-1'
+    }
+
     stages {
-        stage('Clone') {
+
+        stage('Clone from GitHub') {
             steps {
-                git 'https://github.com/your-repo/flask-app.git'
-            }
-        }
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t flask-app .'
-            }
-        }
-        stage('Push to DockerHub') {
-            steps {
-                withCredentials([string(credentialsId: 'dockerhub-pass', variable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u your-username --password-stdin'
-                    sh 'docker tag flask-app your-username/flask-app:latest'
-                    sh 'docker push your-username/flask-app:latest'
+                withCredentials([string(credentialsId: 'github-pvt', variable: 'GITHUB_TOKEN')]) {
+                    git credentialsId: 'github-pvt', url: "https://github.com/SakshiBhavikatti/Cloud-automation.git", branch: 'main'
                 }
             }
         }
+
+        stage('Terraform Provisioning') {
+            steps {
+                dir('terraform') {
+                    sh '''
+                        terraform init
+                        terraform apply -auto-approve
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t flask-app ./app'
+                sh 'docker tag flask-app ${IMAGE_NAME}'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'DockerHub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${IMAGE_NAME}
+                    '''
+                }
+            }
+        }
+
         stage('Deploy to Kubernetes') {
             steps {
-                sh 'kubectl apply -f deployment/deployment.yaml'
-                sh 'kubectl apply -f deployment/service.yaml'
+                sh '''
+                    kubectl apply -f deployment/deployment.yaml
+                    kubectl apply -f deployment/service.yaml
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            dir('terraform') {
+                sh '''
+                    echo "Waiting 500 minutes before destroying resources..."
+                    sleep 30000
+                    terraform destroy -auto-approve
+                '''
             }
         }
     }
 }
+
+
