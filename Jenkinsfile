@@ -59,7 +59,7 @@ pipeline {
         */
     }
 
-    post {
+    /*post {
         always {
             dir('terraform') {
                 bat '''
@@ -69,7 +69,7 @@ pipeline {
                 '''
             }
         }
-    }
+    }*/
 }
 
 
