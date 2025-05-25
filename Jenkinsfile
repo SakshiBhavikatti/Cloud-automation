@@ -11,9 +11,10 @@ pipeline {
 
         stage('Clone from GitHub') {
             steps {
-                withCredentials([string(credentialsId: 'github-pat', variable: 'GITHUB_TOKEN')]) {
-                    git credentialsId: 'github-pat', url: "https://github.com/SakshiBhavikatti/Cloud-automation.git", branch: 'main'
-                }
+                // withCredentials([string(credentialsId: 'github-pat', variable: 'GITHUB_TOKEN')]) {
+                //     git credentialsId: 'github-pat', url: "https://github.com/SakshiBhavikatti/Cloud-automation.git", branch: 'main'
+                // }
+                git url: 'https://github.com/SakshiBhavikatti/Cloud-automation.git', branch: 'main'
             }
         }
 
