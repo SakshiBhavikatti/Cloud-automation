@@ -8,13 +8,9 @@ pipeline {
     }
 
     stages {
-
         stage('Clone from GitHub') {
             steps {
-                // withCredentials([string(credentialsId: 'github-pat', variable: 'GITHUB_TOKEN')]) {
-                //     git credentialsId: 'github-pat', url: "https://github.com/SakshiBhavikatti/Cloud-automation.git", branch: 'main'
-                // }
-                git url: 'https://github.com/SakshiBhavikatti/Cloud-automation.git', branch: 'main'
+                git url: "${GIT_REPO}", branch: 'main'
             }
         }
 
@@ -31,8 +27,10 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t flask-app ./app'
-                bat 'docker tag flask-app ${IMAGE_NAME}'
+                bat '''
+                    docker build -t flask-app ./app
+                    docker tag flask-app %IMAGE_NAME%
+                '''
             }
         }
 
@@ -40,14 +38,13 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'DockerHub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     bat '''
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push ${IMAGE_NAME}
+                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+                        docker push %IMAGE_NAME%
                     '''
                 }
             }
         }
 
-        /*
         stage('Deploy to Kubernetes') {
             steps {
                 bat '''
@@ -56,18 +53,17 @@ pipeline {
                 '''
             }
         }
-        */
     }
 
-    /*post {
+    post {
         always {
             dir('terraform') {
                 bat '''
-                    echo "Waiting 500 minutes before destroying resources..."
-                    sleep 30000
+                    echo "Waiting 5 minutes before destroying resources..."
+                    timeout /t 300
                     terraform destroy -auto-approve
                 '''
             }
         }
-    }*/
+    }
 }
