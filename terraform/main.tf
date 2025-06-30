@@ -98,7 +98,7 @@ ingress {
 
 # Key pair
 resource "aws_key_pair" "deployer" {
-  key_name   = "deployer-key-sakshi-v2"
+  key_name   = "deployer-key-sakshi-v3"
   public_key = file("C:/Users/saksh/.ssh/id_rsa.pub")
 }
 
