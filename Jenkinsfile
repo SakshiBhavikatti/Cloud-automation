@@ -72,7 +72,7 @@ pipeline {
                 dir('terraform') {
                     bat '''
                         echo "Waiting 5 minutes before destroying resources..."
-                        powershell -command "Start-Sleep -Seconds 300"
+                        powershell -command "Start-Sleep -Seconds 100"
                         terraform destroy -auto-approve
                     '''
                 }
